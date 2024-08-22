@@ -1,34 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemIcon, ListItemText, Checkbox, Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, FormControl, InputLabel } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemIcon, ListItemText, Checkbox, Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Grid } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useForm, Controller } from 'react-hook-form';
 
 type Item = {
   id: bigint;
   name: string;
-  category?: string;
+  category: string;
   icon: string;
   completed: boolean;
 };
 
-type Category = {
-  id: bigint;
+type PredefinedItem = {
   name: string;
   icon: string;
 };
 
+const PredefinedItems: React.FC<{ items: PredefinedItem[], onAddItem: (item: PredefinedItem) => void }> = ({ items, onAddItem }) => {
+  return (
+    <Grid container spacing={2}>
+      {items.map((item, index) => (
+        <Grid item xs={6} sm={4} md={3} key={index}>
+          <Button
+            variant="outlined"
+            startIcon={<span>{item.icon}</span>}
+            endIcon={<AddIcon />}
+            onClick={() => onAddItem(item)}
+            fullWidth
+          >
+            {item.name}
+          </Button>
+        </Grid>
+      ))}
+    </Grid>
+  );
+};
+
 const App: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [openItemDialog, setOpenItemDialog] = useState(false);
-  const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
-  const { control: itemControl, handleSubmit: handleItemSubmit, reset: resetItemForm } = useForm();
-  const { control: categoryControl, handleSubmit: handleCategorySubmit, reset: resetCategoryForm } = useForm();
+  const [predefinedSupplies, setPredefinedSupplies] = useState<PredefinedItem[]>([]);
+  const [openDialog, setOpenDialog] = useState(false);
+  const { control, handleSubmit, reset } = useForm();
 
   useEffect(() => {
     fetchItems();
-    fetchCategories();
+    fetchPredefinedSupplies();
   }, []);
 
   const fetchItems = async () => {
@@ -36,23 +53,21 @@ const App: React.FC = () => {
     setItems(result);
   };
 
-  const fetchCategories = async () => {
-    const result = await backend.getCategories();
-    setCategories(result);
+  const fetchPredefinedSupplies = async () => {
+    const result = await backend.getPredefinedSupplies();
+    setPredefinedSupplies(result);
   };
 
   const handleAddItem = async (data: any) => {
-    await backend.addItem(data.name, data.category, data.icon);
+    await backend.addItem(data.name, "Supplies", data.icon);
     fetchItems();
-    setOpenItemDialog(false);
-    resetItemForm();
+    setOpenDialog(false);
+    reset();
   };
 
-  const handleAddCategory = async (data: any) => {
-    await backend.addCategory(data.name, data.icon);
-    fetchCategories();
-    setOpenCategoryDialog(false);
-    resetCategoryForm();
+  const handleAddPredefinedItem = async (item: PredefinedItem) => {
+    await backend.addItem(item.name, "Supplies", item.icon);
+    fetchItems();
   };
 
   const handleToggleComplete = async (id: bigint, completed: boolean) => {
@@ -65,15 +80,17 @@ const App: React.FC = () => {
     fetchItems();
   };
 
-  const handleRemoveCategory = async (id: bigint) => {
-    await backend.removeCategory(id);
-    fetchCategories();
-  };
-
   return (
-    <Container maxWidth="sm">
+    <Container maxWidth="md">
       <Typography variant="h4" component="h1" gutterBottom>
-        Grocery List
+        Supplies List
+      </Typography>
+      <Typography variant="h6" component="h2" gutterBottom>
+        Predefined Supplies
+      </Typography>
+      <PredefinedItems items={predefinedSupplies} onAddItem={handleAddPredefinedItem} />
+      <Typography variant="h6" component="h2" gutterBottom style={{ marginTop: '2rem' }}>
+        Your List
       </Typography>
       <List>
         {items.map((item) => (
@@ -86,84 +103,39 @@ const App: React.FC = () => {
                 disableRipple
               />
             </ListItemIcon>
-            <ListItemText primary={`${item.icon} ${item.name} ${item.category ? `(${item.category})` : ''}`} />
+            <ListItemText primary={`${item.icon} ${item.name}`} />
             <Button onClick={() => handleRemoveItem(item.id)}>Remove</Button>
           </ListItem>
         ))}
       </List>
-      <Fab color="primary" aria-label="add item" onClick={() => setOpenItemDialog(true)} style={{ position: 'fixed', bottom: 16, right: 16 }}>
+      <Fab color="primary" aria-label="add" onClick={() => setOpenDialog(true)} style={{ position: 'fixed', bottom: 16, right: 16 }}>
         <AddIcon />
       </Fab>
-      <Fab color="secondary" aria-label="add category" onClick={() => setOpenCategoryDialog(true)} style={{ position: 'fixed', bottom: 80, right: 16 }}>
-        <AddIcon />
-      </Fab>
-      <Dialog open={openItemDialog} onClose={() => setOpenItemDialog(false)}>
-        <DialogTitle>Add New Item</DialogTitle>
-        <form onSubmit={handleItemSubmit(handleAddItem)}>
+      <Dialog open={openDialog} onClose={() => setOpenDialog(false)}>
+        <DialogTitle>Add Custom Item</DialogTitle>
+        <form onSubmit={handleSubmit(handleAddItem)}>
           <DialogContent>
             <Controller
               name="name"
-              control={itemControl}
+              control={control}
               defaultValue=""
               rules={{ required: 'Name is required' }}
               render={({ field }) => <TextField {...field} label="Item Name" fullWidth margin="normal" />}
             />
             <Controller
-              name="category"
-              control={itemControl}
-              defaultValue=""
-              render={({ field }) => <TextField {...field} label="Category" fullWidth margin="normal" />}
-            />
-            <Controller
               name="icon"
-              control={itemControl}
+              control={control}
               defaultValue=""
               rules={{ required: 'Icon is required' }}
               render={({ field }) => <TextField {...field} label="Icon (emoji)" fullWidth margin="normal" />}
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenItemDialog(false)}>Cancel</Button>
+            <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
             <Button type="submit" color="primary">Add</Button>
           </DialogActions>
         </form>
       </Dialog>
-      <Dialog open={openCategoryDialog} onClose={() => setOpenCategoryDialog(false)}>
-        <DialogTitle>Add New Category</DialogTitle>
-        <form onSubmit={handleCategorySubmit(handleAddCategory)}>
-          <DialogContent>
-            <Controller
-              name="name"
-              control={categoryControl}
-              defaultValue=""
-              rules={{ required: 'Name is required' }}
-              render={({ field }) => <TextField {...field} label="Category Name" fullWidth margin="normal" />}
-            />
-            <Controller
-              name="icon"
-              control={categoryControl}
-              defaultValue=""
-              rules={{ required: 'Icon is required' }}
-              render={({ field }) => <TextField {...field} label="Icon (emoji)" fullWidth margin="normal" />}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setOpenCategoryDialog(false)}>Cancel</Button>
-            <Button type="submit" color="primary">Add</Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-      <Typography variant="h6" component="h2" gutterBottom style={{ marginTop: '2rem' }}>
-        Categories
-      </Typography>
-      <List>
-        {categories.map((category) => (
-          <ListItem key={Number(category.id)}>
-            <ListItemText primary={`${category.icon} ${category.name}`} />
-            <Button onClick={() => handleRemoveCategory(category.id)}>Remove</Button>
-          </ListItem>
-        ))}
-      </List>
     </Container>
   );
 };

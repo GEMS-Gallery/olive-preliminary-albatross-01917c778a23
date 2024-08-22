@@ -13,23 +13,33 @@ actor {
   type Item = {
     id: Nat;
     name: Text;
-    category: ?Text;
+    category: Text;
     icon: Text;
     completed: Bool;
   };
 
-  type Category = {
-    id: Nat;
+  type PredefinedItem = {
     name: Text;
     icon: Text;
   };
 
   stable var nextItemId: Nat = 0;
-  stable var nextCategoryId: Nat = 0;
   let itemStore = HashMap.HashMap<Nat, Item>(10, Nat.equal, Hash.hash);
-  let categoryStore = HashMap.HashMap<Nat, Category>(10, Nat.equal, Hash.hash);
 
-  public func addItem(name: Text, category: ?Text, icon: Text) : async Result.Result<(), Text> {
+  let predefinedSupplies: [PredefinedItem] = [
+    { name = "Paper"; icon = "📄" },
+    { name = "Pen"; icon = "🖊️" },
+    { name = "Notebook"; icon = "📓" },
+    { name = "Stapler"; icon = "📎" },
+    { name = "Scissors"; icon = "✂️" },
+    { name = "Tape"; icon = "🎞️" },
+    { name = "Glue"; icon = "🧴" },
+    { name = "Ruler"; icon = "📏" },
+    { name = "Eraser"; icon = "🧼" },
+    { name = "Pencil Sharpener"; icon = "🖇️" },
+  ];
+
+  public func addItem(name: Text, category: Text, icon: Text) : async Result.Result<(), Text> {
     let id = nextItemId;
     nextItemId += 1;
 
@@ -73,29 +83,8 @@ actor {
     Iter.toArray(itemStore.vals())
   };
 
-  public func addCategory(name: Text, icon: Text) : async Result.Result<(), Text> {
-    let id = nextCategoryId;
-    nextCategoryId += 1;
-
-    let newCategory: Category = {
-      id = id;
-      name = name;
-      icon = icon;
-    };
-
-    categoryStore.put(id, newCategory);
-    #ok(())
-  };
-
-  public func removeCategory(id: Nat) : async Result.Result<(), Text> {
-    switch (categoryStore.remove(id)) {
-      case null { #err("Category not found") };
-      case (?_) { #ok(()) };
-    };
-  };
-
-  public query func getCategories() : async [Category] {
-    Iter.toArray(categoryStore.vals())
+  public query func getPredefinedSupplies() : async [PredefinedItem] {
+    predefinedSupplies
   };
 
   // System functions for upgrades

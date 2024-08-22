@@ -3,26 +3,23 @@ type Result =
    err: text;
    ok;
  };
+type PredefinedItem = 
+ record {
+   icon: text;
+   name: text;
+ };
 type Item = 
  record {
-   category: opt text;
+   category: text;
    completed: bool;
    icon: text;
    id: nat;
    name: text;
  };
-type Category = 
- record {
-   icon: text;
-   id: nat;
-   name: text;
- };
 service : {
-  addCategory: (text, text) -> (Result);
-  addItem: (text, opt text, text) -> (Result);
-  getCategories: () -> (vec Category) query;
+  addItem: (text, text, text) -> (Result);
   getItems: () -> (vec Item) query;
+  getPredefinedSupplies: () -> (vec PredefinedItem) query;
   markItemCompleted: (nat, bool) -> (Result);
-  removeCategory: (nat) -> (Result);
   removeItem: (nat) -> (Result);
 }
