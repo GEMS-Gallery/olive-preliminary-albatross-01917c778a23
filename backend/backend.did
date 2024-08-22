@@ -1,0 +1,25 @@
+type Result = 
+ variant {
+   err: text;
+   ok;
+ };
+type Item = 
+ record {
+   category: text;
+   completed: bool;
+   icon: text;
+   id: nat;
+   name: text;
+ };
+type Category = 
+ record {
+   icon: text;
+   name: text;
+ };
+service : {
+  addItem: (text, text, text) -> (Result);
+  getCategories: () -> (vec Category) query;
+  getItems: () -> (vec Item) query;
+  markItemCompleted: (nat, bool) -> (Result);
+  removeItem: (nat) -> (Result);
+}
