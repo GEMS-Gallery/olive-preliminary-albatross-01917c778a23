@@ -16,10 +16,15 @@ type Item =
    id: nat;
    name: text;
  };
+type Category = 
+ record {
+   items: vec PredefinedItem;
+   name: text;
+ };
 service : {
   addItem: (text, text, text) -> (Result);
   getItems: () -> (vec Item) query;
-  getPredefinedSupplies: () -> (vec PredefinedItem) query;
+  getPredefinedCategories: () -> (vec Category) query;
   markItemCompleted: (nat, bool) -> (Result);
   removeItem: (nat) -> (Result);
 }

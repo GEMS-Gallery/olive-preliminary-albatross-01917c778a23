@@ -2,6 +2,7 @@ import type { Principal } from '@dfinity/principal';
 import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
+export interface Category { 'name' : string, 'items' : Array<PredefinedItem> }
 export interface Item {
   'id' : bigint,
   'icon' : string,
@@ -15,7 +16,7 @@ export type Result = { 'ok' : null } |
 export interface _SERVICE {
   'addItem' : ActorMethod<[string, string, string], Result>,
   'getItems' : ActorMethod<[], Array<Item>>,
-  'getPredefinedSupplies' : ActorMethod<[], Array<PredefinedItem>>,
+  'getPredefinedCategories' : ActorMethod<[], Array<Category>>,
   'markItemCompleted' : ActorMethod<[bigint, boolean], Result>,
   'removeItem' : ActorMethod<[bigint], Result>,
 }

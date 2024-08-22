@@ -23,20 +23,60 @@ actor {
     icon: Text;
   };
 
+  type Category = {
+    name: Text;
+    items: [PredefinedItem];
+  };
+
   stable var nextItemId: Nat = 0;
   let itemStore = HashMap.HashMap<Nat, Item>(10, Nat.equal, Hash.hash);
 
-  let predefinedSupplies: [PredefinedItem] = [
-    { name = "Paper"; icon = "📄" },
-    { name = "Pen"; icon = "🖊️" },
-    { name = "Notebook"; icon = "📓" },
-    { name = "Stapler"; icon = "📎" },
-    { name = "Scissors"; icon = "✂️" },
-    { name = "Tape"; icon = "🎞️" },
-    { name = "Glue"; icon = "🧴" },
-    { name = "Ruler"; icon = "📏" },
-    { name = "Eraser"; icon = "🧼" },
-    { name = "Pencil Sharpener"; icon = "🖇️" },
+  let predefinedCategories: [Category] = [
+    {
+      name = "Food";
+      items = [
+        { name = "Apple"; icon = "🍎" },
+        { name = "Banana"; icon = "🍌" },
+        { name = "Orange"; icon = "🍊" },
+        { name = "Bread"; icon = "🍞" },
+        { name = "Milk"; icon = "🥛" },
+        { name = "Eggs"; icon = "🥚" },
+        { name = "Cheese"; icon = "🧀" },
+        { name = "Tomato"; icon = "🍅" },
+        { name = "Carrot"; icon = "🥕" },
+        { name = "Chicken"; icon = "🍗" },
+      ];
+    },
+    {
+      name = "Supplies";
+      items = [
+        { name = "Paper"; icon = "📄" },
+        { name = "Pen"; icon = "🖊️" },
+        { name = "Notebook"; icon = "📓" },
+        { name = "Stapler"; icon = "📎" },
+        { name = "Scissors"; icon = "✂️" },
+        { name = "Tape"; icon = "🎞️" },
+        { name = "Glue"; icon = "🧴" },
+        { name = "Ruler"; icon = "📏" },
+        { name = "Eraser"; icon = "🧼" },
+        { name = "Pencil Sharpener"; icon = "🖇️" },
+      ];
+    },
+    {
+      name = "Household";
+      items = [
+        { name = "Soap"; icon = "🧼" },
+        { name = "Shampoo"; icon = "🧴" },
+        { name = "Toothpaste"; icon = "🪥" },
+        { name = "Toilet Paper"; icon = "🧻" },
+        { name = "Detergent"; icon = "🧺" },
+        { name = "Trash Bags"; icon = "🗑️" },
+        { name = "Light Bulb"; icon = "💡" },
+        { name = "Batteries"; icon = "🔋" },
+        { name = "Candles"; icon = "🕯️" },
+        { name = "Air Freshener"; icon = "🌸" },
+      ];
+    },
   ];
 
   public func addItem(name: Text, category: Text, icon: Text) : async Result.Result<(), Text> {
@@ -83,8 +123,8 @@ actor {
     Iter.toArray(itemStore.vals())
   };
 
-  public query func getPredefinedSupplies() : async [PredefinedItem] {
-    predefinedSupplies
+  public query func getPredefinedCategories() : async [Category] {
+    predefinedCategories
   };
 
   // System functions for upgrades
