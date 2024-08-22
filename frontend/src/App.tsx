@@ -17,7 +17,7 @@ type PredefinedItem = {
   icon: string;
 };
 
-const PredefinedItems: React.FC<{ items: PredefinedItem[], onAddItem: (item: PredefinedItem) => void, loading: boolean }> = ({ items, onAddItem, loading }) => {
+const PredefinedItems: React.FC<{ items: PredefinedItem[], onAddItem: (item: PredefinedItem) => void, loadingItems: { [key: string]: boolean } }> = ({ items, onAddItem, loadingItems }) => {
   return (
     <Grid container spacing={2}>
       {items.map((item, index) => (
@@ -25,10 +25,10 @@ const PredefinedItems: React.FC<{ items: PredefinedItem[], onAddItem: (item: Pre
           <Button
             variant="outlined"
             startIcon={<span>{item.icon}</span>}
-            endIcon={loading ? <CircularProgress size={20} /> : <AddIcon />}
+            endIcon={loadingItems[item.name] ? <CircularProgress size={20} /> : <AddIcon />}
             onClick={() => onAddItem(item)}
             fullWidth
-            disabled={loading}
+            disabled={loadingItems[item.name]}
           >
             {item.name}
           </Button>
@@ -42,7 +42,6 @@ const App: React.FC = () => {
   const [items, setItems] = useState<Item[]>([]);
   const [predefinedSupplies, setPredefinedSupplies] = useState<PredefinedItem[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [loadingItems, setLoadingItems] = useState<{ [key: string]: boolean }>({});
   const { control, handleSubmit, reset } = useForm();
 
@@ -62,24 +61,24 @@ const App: React.FC = () => {
   };
 
   const handleAddItem = async (data: any) => {
-    setLoading(true);
+    setLoadingItems(prev => ({ ...prev, [data.name]: true }));
     try {
       await backend.addItem(data.name, "Supplies", data.icon);
       await fetchItems();
       setOpenDialog(false);
       reset();
     } finally {
-      setLoading(false);
+      setLoadingItems(prev => ({ ...prev, [data.name]: false }));
     }
   };
 
   const handleAddPredefinedItem = async (item: PredefinedItem) => {
-    setLoading(true);
+    setLoadingItems(prev => ({ ...prev, [item.name]: true }));
     try {
       await backend.addItem(item.name, "Supplies", item.icon);
       await fetchItems();
     } finally {
-      setLoading(false);
+      setLoadingItems(prev => ({ ...prev, [item.name]: false }));
     }
   };
 
@@ -111,7 +110,7 @@ const App: React.FC = () => {
       <Typography variant="h6" component="h2" gutterBottom>
         Predefined Supplies
       </Typography>
-      <PredefinedItems items={predefinedSupplies} onAddItem={handleAddPredefinedItem} loading={loading} />
+      <PredefinedItems items={predefinedSupplies} onAddItem={handleAddPredefinedItem} loadingItems={loadingItems} />
       <Typography variant="h6" component="h2" gutterBottom style={{ marginTop: '2rem' }}>
         Your List
       </Typography>
@@ -131,7 +130,7 @@ const App: React.FC = () => {
               )}
             </ListItemIcon>
             <ListItemText primary={`${item.icon} ${item.name}`} />
-            <Button onClick={() => handleRemoveItem(item.id)} disabled={loadingItems[item.id.toString()]}>
+            <Button onClick={(e) => { e.stopPropagation(); handleRemoveItem(item.id); }} disabled={loadingItems[item.id.toString()]}>
               {loadingItems[item.id.toString()] ? <CircularProgress size={20} /> : 'Remove'}
             </Button>
           </ListItem>
@@ -160,9 +159,9 @@ const App: React.FC = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setOpenDialog(false)} disabled={loading}>Cancel</Button>
-            <Button type="submit" color="primary" disabled={loading}>
-              {loading ? <CircularProgress size={20} /> : 'Add'}
+            <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+            <Button type="submit" color="primary" disabled={loadingItems['customItem']}>
+              {loadingItems['customItem'] ? <CircularProgress size={20} /> : 'Add'}
             </Button>
           </DialogActions>
         </form>
