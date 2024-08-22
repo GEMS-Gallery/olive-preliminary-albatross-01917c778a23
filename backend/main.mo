@@ -1,6 +1,5 @@
 import Bool "mo:base/Bool";
 import Hash "mo:base/Hash";
-import Iter "mo:base/Iter";
 
 import Array "mo:base/Array";
 import Result "mo:base/Result";
@@ -8,33 +7,29 @@ import Text "mo:base/Text";
 import Nat "mo:base/Nat";
 import HashMap "mo:base/HashMap";
 import Option "mo:base/Option";
+import Iter "mo:base/Iter";
 
 actor {
   type Item = {
     id: Nat;
     name: Text;
-    category: Text;
+    category: ?Text;
     icon: Text;
     completed: Bool;
   };
 
   type Category = {
+    id: Nat;
     name: Text;
     icon: Text;
   };
 
   stable var nextItemId: Nat = 0;
+  stable var nextCategoryId: Nat = 0;
   let itemStore = HashMap.HashMap<Nat, Item>(10, Nat.equal, Hash.hash);
+  let categoryStore = HashMap.HashMap<Nat, Category>(10, Nat.equal, Hash.hash);
 
-  stable let categories: [Category] = [
-    { name = "Fruits"; icon = "🍎" },
-    { name = "Vegetables"; icon = "🥕" },
-    { name = "Dairy"; icon = "🥛" },
-    { name = "Bakery"; icon = "🍞" },
-    { name = "Meat"; icon = "🥩" },
-  ];
-
-  public func addItem(name: Text, category: Text, icon: Text) : async Result.Result<(), Text> {
+  public func addItem(name: Text, category: ?Text, icon: Text) : async Result.Result<(), Text> {
     let id = nextItemId;
     nextItemId += 1;
 
@@ -78,8 +73,29 @@ actor {
     Iter.toArray(itemStore.vals())
   };
 
+  public func addCategory(name: Text, icon: Text) : async Result.Result<(), Text> {
+    let id = nextCategoryId;
+    nextCategoryId += 1;
+
+    let newCategory: Category = {
+      id = id;
+      name = name;
+      icon = icon;
+    };
+
+    categoryStore.put(id, newCategory);
+    #ok(())
+  };
+
+  public func removeCategory(id: Nat) : async Result.Result<(), Text> {
+    switch (categoryStore.remove(id)) {
+      case null { #err("Category not found") };
+      case (?_) { #ok(()) };
+    };
+  };
+
   public query func getCategories() : async [Category] {
-    categories
+    Iter.toArray(categoryStore.vals())
   };
 
   // System functions for upgrades

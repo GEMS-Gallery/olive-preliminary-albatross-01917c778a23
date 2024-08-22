@@ -5,7 +5,7 @@ type Result =
  };
 type Item = 
  record {
-   category: text;
+   category: opt text;
    completed: bool;
    icon: text;
    id: nat;
@@ -14,12 +14,15 @@ type Item =
 type Category = 
  record {
    icon: text;
+   id: nat;
    name: text;
  };
 service : {
-  addItem: (text, text, text) -> (Result);
+  addCategory: (text, text) -> (Result);
+  addItem: (text, opt text, text) -> (Result);
   getCategories: () -> (vec Category) query;
   getItems: () -> (vec Item) query;
   markItemCompleted: (nat, bool) -> (Result);
+  removeCategory: (nat) -> (Result);
   removeItem: (nat) -> (Result);
 }
