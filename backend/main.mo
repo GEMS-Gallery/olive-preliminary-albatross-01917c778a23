@@ -15,6 +15,7 @@ actor {
     name: Text;
     category: Text;
     icon: Text;
+    quantity: Nat;
     completed: Bool;
   };
 
@@ -79,7 +80,7 @@ actor {
     },
   ];
 
-  public func addItem(name: Text, category: Text, icon: Text) : async Result.Result<(), Text> {
+  public func addItem(name: Text, category: Text, icon: Text, quantity: Nat) : async Result.Result<(), Text> {
     let id = nextItemId;
     nextItemId += 1;
 
@@ -88,6 +89,7 @@ actor {
       name = name;
       category = category;
       icon = icon;
+      quantity = quantity;
       completed = false;
     };
 
@@ -111,7 +113,26 @@ actor {
           name = item.name;
           category = item.category;
           icon = item.icon;
+          quantity = item.quantity;
           completed = completed;
+        };
+        itemStore.put(id, updatedItem);
+        #ok(())
+      };
+    };
+  };
+
+  public func updateItemQuantity(id: Nat, quantity: Nat) : async Result.Result<(), Text> {
+    switch (itemStore.get(id)) {
+      case null { #err("Item not found") };
+      case (?item) {
+        let updatedItem = {
+          id = item.id;
+          name = item.name;
+          category = item.category;
+          icon = item.icon;
+          quantity = quantity;
+          completed = item.completed;
         };
         itemStore.put(id, updatedItem);
         #ok(())
