@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
 import { Container, Typography, List, ListItem, ListItemIcon, ListItemText, Checkbox, Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Grid, CircularProgress, Paper, Box, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import { useForm, Controller } from 'react-hook-form';
 
@@ -168,7 +169,7 @@ const App: React.FC = () => {
                 color="error"
                 size="large"
               >
-                {loadingItems[item.id.toString()] ? <CircularProgress size={24} /> : <AddIcon />}
+                {loadingItems[item.id.toString()] ? <CircularProgress size={24} /> : <DeleteIcon />}
               </IconButton>
             </ListItem>
           ))}
