@@ -5,6 +5,7 @@ export const idlFactory = ({ IDL }) => {
     'icon' : IDL.Text,
     'name' : IDL.Text,
     'completed' : IDL.Bool,
+    'quantity' : IDL.Nat,
     'category' : IDL.Text,
   });
   const PredefinedItem = IDL.Record({ 'icon' : IDL.Text, 'name' : IDL.Text });
@@ -13,11 +14,12 @@ export const idlFactory = ({ IDL }) => {
     'items' : IDL.Vec(PredefinedItem),
   });
   return IDL.Service({
-    'addItem' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [Result], []),
+    'addItem' : IDL.Func([IDL.Text, IDL.Text, IDL.Text, IDL.Nat], [Result], []),
     'getItems' : IDL.Func([], [IDL.Vec(Item)], ['query']),
     'getPredefinedCategories' : IDL.Func([], [IDL.Vec(Category)], ['query']),
     'markItemCompleted' : IDL.Func([IDL.Nat, IDL.Bool], [Result], []),
     'removeItem' : IDL.Func([IDL.Nat], [Result], []),
+    'updateItemQuantity' : IDL.Func([IDL.Nat, IDL.Nat], [Result], []),
   });
 };
 export const init = ({ IDL }) => { return []; };
