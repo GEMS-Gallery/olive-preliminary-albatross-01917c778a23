@@ -8,6 +8,7 @@ import Nat "mo:base/Nat";
 import HashMap "mo:base/HashMap";
 import Option "mo:base/Option";
 import Iter "mo:base/Iter";
+import Debug "mo:base/Debug";
 
 actor {
   type Item = {
@@ -237,10 +238,10 @@ actor {
 
   // System functions for upgrades
   system func preupgrade() {
-    // Implement if needed
+    Debug.print("Preparing for upgrade...");
   };
 
   system func postupgrade() {
-    // Implement if needed
+    Debug.print("Upgrade completed successfully.");
   };
 }
