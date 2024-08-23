@@ -28,8 +28,6 @@ const theme = createTheme({
         root: {
           textTransform: 'none',
           borderRadius: 8,
-          padding: '10px 16px',
-          fontSize: '1rem',
         },
       },
     },
@@ -44,22 +42,6 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           boxShadow: '0 4px 14px 0 rgba(0,0,0,0.1)',
-        },
-      },
-    },
-    MuiIconButton: {
-      styleOverrides: {
-        root: {
-          padding: 12,
-        },
-      },
-    },
-    MuiTextField: {
-      styleOverrides: {
-        root: {
-          '& .MuiInputBase-root': {
-            borderRadius: 8,
-          },
         },
       },
     },
