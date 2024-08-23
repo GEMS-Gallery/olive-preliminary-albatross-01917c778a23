@@ -15,7 +15,6 @@ type Item =
    icon: text;
    id: nat;
    name: text;
-   quantity: nat;
  };
 type Category = 
  record {
@@ -23,10 +22,9 @@ type Category =
    name: text;
  };
 service : {
-  addItem: (text, text, text, nat) -> (Result);
+  addItem: (text, text, text) -> (Result);
   getItems: () -> (vec Item) query;
   getPredefinedCategories: () -> (vec Category) query;
   markItemCompleted: (nat, bool) -> (Result);
   removeItem: (nat) -> (Result);
-  updateItemQuantity: (nat, nat) -> (Result);
 }
