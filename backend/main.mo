@@ -9,6 +9,7 @@ import HashMap "mo:base/HashMap";
 import Option "mo:base/Option";
 import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
+import Error "mo:base/Error";
 
 actor {
   type Item = {
@@ -189,43 +190,58 @@ actor {
   ];
 
   public func addItem(name: Text, category: Text, icon: Text) : async Result.Result<(), Text> {
-    let id = nextItemId;
-    nextItemId += 1;
+    try {
+      let id = nextItemId;
+      nextItemId += 1;
 
-    let newItem: Item = {
-      id = id;
-      name = name;
-      category = category;
-      icon = icon;
-      completed = false;
-    };
+      let newItem: Item = {
+        id = id;
+        name = name;
+        category = category;
+        icon = icon;
+        completed = false;
+      };
 
-    itemStore.put(id, newItem);
-    #ok(())
+      itemStore.put(id, newItem);
+      #ok(())
+    } catch (e) {
+      Debug.print("Error adding item: " # Error.message(e));
+      #err("Failed to add item. Please try again.")
+    }
   };
 
   public func removeItem(id: Nat) : async Result.Result<(), Text> {
-    switch (itemStore.remove(id)) {
-      case null { #err("Item not found") };
-      case (?_) { #ok(()) };
-    };
+    try {
+      switch (itemStore.remove(id)) {
+        case null { #err("Item not found") };
+        case (?_) { #ok(()) };
+      };
+    } catch (e) {
+      Debug.print("Error removing item: " # Error.message(e));
+      #err("Failed to remove item. Please try again.")
+    }
   };
 
   public func markItemCompleted(id: Nat, completed: Bool) : async Result.Result<(), Text> {
-    switch (itemStore.get(id)) {
-      case null { #err("Item not found") };
-      case (?item) {
-        let updatedItem = {
-          id = item.id;
-          name = item.name;
-          category = item.category;
-          icon = item.icon;
-          completed = completed;
+    try {
+      switch (itemStore.get(id)) {
+        case null { #err("Item not found") };
+        case (?item) {
+          let updatedItem = {
+            id = item.id;
+            name = item.name;
+            category = item.category;
+            icon = item.icon;
+            completed = completed;
+          };
+          itemStore.put(id, updatedItem);
+          #ok(())
         };
-        itemStore.put(id, updatedItem);
-        #ok(())
       };
-    };
+    } catch (e) {
+      Debug.print("Error marking item as completed: " # Error.message(e));
+      #err("Failed to update item. Please try again.")
+    }
   };
 
   public query func getItems() : async [Item] {

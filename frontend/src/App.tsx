@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { backend } from 'declarations/backend';
-import { Container, Typography, List, ListItem, ListItemIcon, ListItemText, Checkbox, Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Grid, CircularProgress, Paper, Box, IconButton, Snackbar } from '@mui/material';
+import { Container, Typography, List, ListItem, ListItemIcon, ListItemText, Checkbox, Fab, Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField, Grid, CircularProgress, Paper, Box, IconButton, Snackbar, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -61,8 +61,7 @@ const App: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [openDialog, setOpenDialog] = useState(false);
   const [loadingItems, setLoadingItems] = useState<{ [key: string]: boolean }>({});
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({ open: false, message: '', severity: 'success' });
   const { control, handleSubmit, reset } = useForm();
 
   useEffect(() => {
@@ -76,8 +75,7 @@ const App: React.FC = () => {
       setItems(result);
     } catch (error) {
       console.error('Error fetching items:', error);
-      setSnackbarMessage('Failed to fetch items. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({ open: true, message: 'Failed to fetch items. Please try again.', severity: 'error' });
     }
   };
 
@@ -87,24 +85,25 @@ const App: React.FC = () => {
       setCategories(result);
     } catch (error) {
       console.error('Error fetching categories:', error);
-      setSnackbarMessage('Failed to fetch categories. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({ open: true, message: 'Failed to fetch categories. Please try again.', severity: 'error' });
     }
   };
 
   const handleAddItem = async (data: any) => {
     setLoadingItems(prev => ({ ...prev, [data.name]: true }));
     try {
-      await backend.addItem(data.name, data.category, data.icon);
-      await fetchItems();
-      setOpenDialog(false);
-      reset();
-      setSnackbarMessage('Item added successfully!');
-      setSnackbarOpen(true);
+      const result = await backend.addItem(data.name, data.category, data.icon);
+      if ('ok' in result) {
+        await fetchItems();
+        setOpenDialog(false);
+        reset();
+        setSnackbar({ open: true, message: 'Item added successfully!', severity: 'success' });
+      } else {
+        throw new Error(result.err);
+      }
     } catch (error) {
       console.error('Error adding item:', error);
-      setSnackbarMessage('Failed to add item. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({ open: true, message: 'Failed to add item. Please try again.', severity: 'error' });
     } finally {
       setLoadingItems(prev => ({ ...prev, [data.name]: false }));
     }
@@ -114,14 +113,16 @@ const App: React.FC = () => {
     const key = `${category}-${item.name}`;
     setLoadingItems(prev => ({ ...prev, [key]: true }));
     try {
-      await backend.addItem(item.name, category, item.icon);
-      await fetchItems();
-      setSnackbarMessage('Item added successfully!');
-      setSnackbarOpen(true);
+      const result = await backend.addItem(item.name, category, item.icon);
+      if ('ok' in result) {
+        await fetchItems();
+        setSnackbar({ open: true, message: 'Item added successfully!', severity: 'success' });
+      } else {
+        throw new Error(result.err);
+      }
     } catch (error) {
       console.error('Error adding predefined item:', error);
-      setSnackbarMessage('Failed to add item. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({ open: true, message: 'Failed to add item. Please try again.', severity: 'error' });
     } finally {
       setLoadingItems(prev => ({ ...prev, [key]: false }));
     }
@@ -130,12 +131,15 @@ const App: React.FC = () => {
   const handleToggleComplete = async (id: bigint, completed: boolean) => {
     setLoadingItems(prev => ({ ...prev, [id.toString()]: true }));
     try {
-      await backend.markItemCompleted(id, !completed);
-      await fetchItems();
+      const result = await backend.markItemCompleted(id, !completed);
+      if ('ok' in result) {
+        await fetchItems();
+      } else {
+        throw new Error(result.err);
+      }
     } catch (error) {
       console.error('Error toggling item completion:', error);
-      setSnackbarMessage('Failed to update item. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({ open: true, message: 'Failed to update item. Please try again.', severity: 'error' });
     } finally {
       setLoadingItems(prev => ({ ...prev, [id.toString()]: false }));
     }
@@ -144,14 +148,16 @@ const App: React.FC = () => {
   const handleRemoveItem = async (id: bigint) => {
     setLoadingItems(prev => ({ ...prev, [id.toString()]: true }));
     try {
-      await backend.removeItem(id);
-      await fetchItems();
-      setSnackbarMessage('Item removed successfully!');
-      setSnackbarOpen(true);
+      const result = await backend.removeItem(id);
+      if ('ok' in result) {
+        await fetchItems();
+        setSnackbar({ open: true, message: 'Item removed successfully!', severity: 'success' });
+      } else {
+        throw new Error(result.err);
+      }
     } catch (error) {
       console.error('Error removing item:', error);
-      setSnackbarMessage('Failed to remove item. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({ open: true, message: 'Failed to remove item. Please try again.', severity: 'error' });
     } finally {
       setLoadingItems(prev => ({ ...prev, [id.toString()]: false }));
     }
@@ -254,12 +260,11 @@ const App: React.FC = () => {
           </DialogActions>
         </form>
       </Dialog>
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+      <Snackbar open={snackbar.open} autoHideDuration={6000} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+        <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
